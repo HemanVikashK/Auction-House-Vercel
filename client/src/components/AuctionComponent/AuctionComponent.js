@@ -18,8 +18,8 @@ const AuctionComponent = () => {
   const { user } = useAuth();
   const [productDetails, setProductDetails] = useState(null);
   const socketRef = useRef();
-  const timerIntervalRef = useRef(null); 
-  const highestBidderRef = useRef(null); 
+  const timerIntervalRef = useRef(null);
+  const highestBidderRef = useRef(null);
 
   // New state for sidebar view
   const [activeSidebarView, setActiveSidebarView] = useState("bids");
@@ -27,7 +27,9 @@ const AuctionComponent = () => {
   useEffect(() => {
     if (!user) return;
 
-    socketRef.current = socketIOClient("http://localhost:5000");
+    socketRef.current = socketIOClient(
+      "https://auction-house-backend.onrender.com"
+    );
     const socket = socketRef.current;
 
     fetchProdDetails(prodid);
@@ -39,7 +41,7 @@ const AuctionComponent = () => {
       if (data.bidHistory.length === 1) {
         startTimer(30);
       } else {
-        startTimer(30); 
+        startTimer(30);
       }
       highestBidderRef.current =
         data.bidHistory[data.bidHistory.length - 1].user;

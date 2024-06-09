@@ -13,7 +13,7 @@ const { log } = require("console");
 const app = express();
 
 const corsOptions = {
-  origin: "http://localhost:3000", // Your frontend URL
+  origin: "*", // Your frontend URL
   methods: ["GET", "POST"],
   credentials: true,
 };
@@ -28,7 +28,7 @@ const server = http.createServer(app);
 
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000", // Your frontend URL
+    origin: "*", // Your frontend URL
     methods: ["GET", "POST"],
     credentials: true,
   },
