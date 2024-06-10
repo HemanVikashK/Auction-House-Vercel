@@ -8,10 +8,10 @@ const {
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 require("dotenv").config();
 
-const bucketName = process.env.AWS_BUCKET_NAME1;
-const bucketregion = process.env.AWS_REGION1;
-const accesskey = process.env.AWS_ACCESS_KEY1;
-const secretkey = process.env.AWS_SECRET_ACCESS_KEY1;
+const bucketName = process.env.AWS_BUCKET_NAME;
+const bucketregion = process.env.AWS_REGION;
+const accesskey = process.env.AWS_ACCESS_KEY;
+const secretkey = process.env.AWS_SECRET_ACCESS_KEY;
 
 const crypto = require("crypto");
 const sharp = require("sharp");
@@ -171,6 +171,9 @@ exports.getProd = async (req, res) => {
 
 exports.getAllProdUnSold = async (req, res) => {
   try {
+    console.log("AWS_ACCESS_KEY_ID:", process.env.AWS_ACCESS_KEY1);
+    console.log("AWS_SECRET_ACCESS_KEY:", process.env.AWS_SECRET_ACCESS_KEY1);
+
     const products = await pool.query(
       "SELECT * FROM products WHERE status ='unsold'"
     );

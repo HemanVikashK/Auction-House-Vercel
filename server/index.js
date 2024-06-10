@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const http = require("http");
 const socketIo = require("socket.io");
-const pool = require("./utils/db"); // Import the database connection
+const pool = require("./utils/db"); 
 const cron = require("node-cron");
 const sendEmail = require("./utils/emailService");
 
