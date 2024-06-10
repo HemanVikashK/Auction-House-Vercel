@@ -8,20 +8,22 @@ const {
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 require("dotenv").config();
 
-const bucketName = process.env.AWS_BUCKET_NAME;
-const bucketregion = process.env.AWS_REGION;
-const accesskey = process.env.AWS_ACCESS_KEY;
-const secretkey = process.env.AWS_SECRET_ACCESS_KEY;
+const bucketName = process.env.AWS_BUCKET_NAME1;
+const bucketregion = process.env.AWS_REGION1;
+const accesskey = process.env.AWS_ACCESS_KEY1;
+const secretkey = process.env.AWS_SECRET_ACCESS_KEY1;
 
 const crypto = require("crypto");
 const sharp = require("sharp");
+
 const s3 = new S3Client({
-  Credentials: {
-    accesskeyid: accesskey,
-    secretKey: secretkey,
-  },
   region: bucketregion,
+  credentials: {
+    accessKeyId: accesskey,
+    secretAccessKey: secretkey,
+  },
 });
+
 const randomImgName = (bytes = 32) => crypto.randomBytes(bytes).toString("hex");
 
 exports.createProd = async (req, res) => {
@@ -54,7 +56,7 @@ exports.createProd = async (req, res) => {
     } = req.body;
 
     const newProduct = await pool.query(
-      "INSERT INTO products (name, description, starting_price, user_id, image_url, created_at, auction_start_time,main_category,sub_category) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6,$7,$8) RETURNING *",
+      "INSERT INTO products (name, description, starting_price, user_id, image_url, created_at, auction_start_time, main_category, sub_category) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6, $7, $8) RETURNING *",
       [
         name,
         description,
@@ -139,6 +141,7 @@ exports.delProd = async (req, res) => {
     res.status(500).json({ error: "Error deleting product", status: false });
   }
 };
+
 exports.getProd = async (req, res) => {
   try {
     const { id } = req.body; // Assuming product ID comes from URL params
@@ -171,9 +174,6 @@ exports.getProd = async (req, res) => {
 
 exports.getAllProdUnSold = async (req, res) => {
   try {
-    console.log("AWS_ACCESS_KEY_ID:", process.env.AWS_ACCESS_KEY1);
-    console.log("AWS_SECRET_ACCESS_KEY:", process.env.AWS_SECRET_ACCESS_KEY1);
-
     const products = await pool.query(
       "SELECT * FROM products WHERE status ='unsold'"
     );
@@ -229,13 +229,15 @@ exports.getAuctionResult = async (req, res) => {
     const { id } = req.params;
     console.log(id);
     const products = await pool.query(
-      "SELECT * FROM auction_results where product_id=$1",
+      "SELECT * FROM auction_results WHERE product_id = $1",
       [id]
     );
     console.log(products);
     res.status(200).json({ status: true, data: products.rows });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error getting products", status: false });
+    res
+      .status(500)
+      .json({ error: "Error getting auction results", status: false });
   }
 };
