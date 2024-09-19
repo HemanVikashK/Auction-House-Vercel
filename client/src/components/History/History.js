@@ -57,7 +57,7 @@ function History() {
       console.log(user);
       const id = user.id; // Replace with actual user ID
       const response1 = await fetch(
-        `http://localhost:5000/product/userauctionresults/${id}`
+        `https://auction-house-vercel.onrender.com/product/userauctionresults/${id}`
       );
       const data1 = await response1.json();
 
@@ -86,7 +86,7 @@ function History() {
       }
 
       const response2 = await fetch(
-        `http://localhost:5000/product/userproducts/${id}`
+        `https://auction-house-vercel.onrender.com/product/userproducts/${id}`
       );
       const data2 = await response2.json();
 

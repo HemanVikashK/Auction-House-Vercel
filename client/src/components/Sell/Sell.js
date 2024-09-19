@@ -30,7 +30,7 @@ function Sell() {
     formData.append("sub_category", subCategory);
 
     try {
-      const response = await fetch("http://localhost:5000/product/create", {
+      const response = await fetch("https://auction-house-vercel.onrender.com/product/create", {
         method: "POST",
         body: formData,
       });
