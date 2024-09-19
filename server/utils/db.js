@@ -2,7 +2,7 @@ const { Pool } = require("pg");
 
 const pool = new Pool({
   connectionString:
-    "postgresql://postgres:UTacSraSSrhOtIeLfzJDniXXIIKHMtDB@monorail.proxy.rlwy.net:43608/railway",
+    "postgresql://postgres:uTwOzUnJEDkFiXguBzsXxwhtiFiotqgb@autorack.proxy.rlwy.net:11618/railway",
 });
 
 module.exports = pool;

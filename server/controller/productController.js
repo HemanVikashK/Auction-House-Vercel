@@ -1,4 +1,4 @@
-const pool = require("../utils/db"); // Replace with actual path to db.js
+const pool = require("../utils/db");
 const {
   S3Client,
   PutObjectCommand,
@@ -8,10 +8,10 @@ const {
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 require("dotenv").config();
 
-const bucketName = process.env.AWS_BUCKET_NAME1;
-const bucketregion = process.env.AWS_REGION1;
-const accesskey = process.env.AWS_ACCESS_KEY1;
-const secretkey = process.env.AWS_SECRET_ACCESS_KEY1;
+const bucketName = process.env.AWS_BUCKET_NAME;
+const bucketregion = process.env.AWS_REGION;
+const accesskey = process.env.AWS_ACCESS_KEY;
+const secretkey = process.env.AWS_SECRET_ACCESS_KEY;
 
 const crypto = require("crypto");
 const sharp = require("sharp");
@@ -144,7 +144,7 @@ exports.delProd = async (req, res) => {
 
 exports.getProd = async (req, res) => {
   try {
-    const { id } = req.body; // Assuming product ID comes from URL params
+    const { id } = req.body;
 
     const product = await pool.query("SELECT * FROM products WHERE id = $1", [
       id,
@@ -232,12 +232,79 @@ exports.getAuctionResult = async (req, res) => {
       "SELECT * FROM auction_results WHERE product_id = $1",
       [id]
     );
-    console.log(products);
+
     res.status(200).json({ status: true, data: products.rows });
   } catch (error) {
     console.error(error);
     res
       .status(500)
       .json({ error: "Error getting auction results", status: false });
+  }
+};
+
+exports.getAllUserAuctionResults = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const products = await pool.query(
+      `SELECT p.*, ar.bids, ar.buyer 
+       FROM products p 
+       LEFT JOIN auction_results ar ON p.id = ar.product_id 
+       WHERE p.user_id = $1 and p.status='sold'`,
+      [id]
+    );
+
+    for (const prod of products.rows) {
+      if (prod.image_url) {
+        const getObjectParams = {
+          Bucket: bucketName,
+          Key: prod.image_url,
+        };
+
+        const command = new GetObjectCommand(getObjectParams);
+        const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+        prod.image_url = url;
+      }
+    }
+
+    res.status(200).json({ status: true, data: products.rows });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: "Error getting user auction results", status: false });
+  }
+};
+
+exports.getAllUserProducts = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const products = await pool.query(
+      `SELECT * 
+       FROM products p 
+       WHERE p.user_id = $1 and p.status='unsold' and p.auction_start_time > NOW()`,
+      [id]
+    );
+
+    for (const prod of products.rows) {
+      if (prod.image_url) {
+        const getObjectParams = {
+          Bucket: bucketName,
+          Key: prod.image_url,
+        };
+
+        const command = new GetObjectCommand(getObjectParams);
+        const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+        prod.image_url = url;
+      }
+    }
+
+    res.status(200).json({ status: true, data: products.rows });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: "Error getting user auction results", status: false });
   }
 };

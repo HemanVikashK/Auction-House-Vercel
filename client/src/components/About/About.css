@@ -1,4 +1,4 @@
-/* src/components/About.css */
+
 .about-container {
   max-width: 100%;
   margin: 0 auto;
@@ -53,6 +53,9 @@
 .about-content {
   flex: 1;
   padding: 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .about-image-placeholder {

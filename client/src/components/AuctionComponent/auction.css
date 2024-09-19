@@ -14,6 +14,19 @@
   height: 500px;
   object-fit: cover;
 }
+.quick-bid-buttons {
+  display: flex;
+  gap: 10px;
+  margin: 20px;
+  align-items: center;
+  justify-content: center;
+}
+
+.quick-bid-buttons button {
+  padding: 5px 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
 
 .side-panel {
   width: 30%;
@@ -126,14 +139,14 @@
   cursor: pointer;
   font-size: 1.5rem;
   color: #121212;
-  position: relative; /* Add position relative for absolute positioning */
+  position: relative; 
 }
 
 .sidebar-icons button:focus {
   outline: none;
 }
 
-/* Add selected styles */
+
 .sidebar-icons button.selected::after {
   content: "";
   position: absolute;
@@ -142,7 +155,7 @@
   width: 100%;
   height: 3px;
   background-color: #121212;
-  box-shadow: 0 2px 4px rgba(18, 18, 18, 0.2); /* Darkened effect */
+  box-shadow: 0 2px 4px rgba(18, 18, 18, 0.2); 
 }
 
 .product-details {
@@ -251,7 +264,6 @@
   font-size: 0.5rem;
 }
 
-/* Chat-like styles for bid history */
 .bid-history {
   display: flex;
   flex-direction: column;

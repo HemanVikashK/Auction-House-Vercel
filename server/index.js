@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const http = require("http");
 const socketIo = require("socket.io");
-const pool = require("./utils/db"); 
+const pool = require("./utils/db");
 const cron = require("node-cron");
 const sendEmail = require("./utils/emailService");
 
@@ -13,7 +13,7 @@ const { log } = require("console");
 const app = express();
 
 const corsOptions = {
-  origin: "*", // Your frontend URL
+  origin: "*",
   methods: ["GET", "POST"],
   credentials: true,
 };
@@ -28,7 +28,7 @@ const server = http.createServer(app);
 
 const io = socketIo(server, {
   cors: {
-    origin: "*", // Your frontend URL
+    origin: "*",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -57,13 +57,17 @@ io.on("connection", (socket) => {
   });
 
   socket.on("handleBid", (amount, roomId, user) => {
-    if (!rooms[roomId].soldTo) {
+    console.log(user);
+    if (!rooms[roomId].soldTo && rooms[roomId].currentBid < amount) {
       rooms[roomId].currentBid = amount;
       rooms[roomId].bidHistory.push({ user, amount });
       io.to(roomId).emit("bidUpdate", {
         currentBid: rooms[roomId].currentBid,
         bidHistory: rooms[roomId].bidHistory,
       });
+    } else {
+      console.log("hello");
+      socket.emit("bidFailed", "Bid failed. Please bid higher.");
     }
   });
 
@@ -77,25 +81,24 @@ io.on("connection", (socket) => {
       rooms[socket.roomId].soldTo = highestBidder;
       const lastbid = rooms[socket.roomId].currentBid;
       try {
-        // await pool.query(
-        //   "UPDATE products SET status = $1,sold_to=$2,sold_at=$3 WHERE id = $4",
-        //   ["sold", highestBidder, lastbid, prodid]
-        // );
+        await pool.query(
+          "UPDATE products SET status = $1,sold_to=$2,sold_at=$3 WHERE id = $4",
+          ["sold", highestBidder, lastbid, prodid]
+        );
         console.log(`Product ${prodid} marked as sold to ${highestBidder}`);
       } catch (error) {
         console.error("Error updating product status:", error);
       }
 
-      // Insert the auction result into the auction_results table
       try {
-        // await pool.query(
-        //   "INSERT INTO auction_results (product_id, buyer, bids) VALUES ($1, $2, $3)",
-        //   [
-        //     prodid,
-        //     highestBidder,
-        //     JSON.stringify(rooms[socket.roomId].bidHistory),
-        //   ]
-        // );
+        await pool.query(
+          "INSERT INTO auction_results (product_id, buyer, bids) VALUES ($1, $2, $3)",
+          [
+            prodid,
+            highestBidder,
+            JSON.stringify(rooms[socket.roomId].bidHistory),
+          ]
+        );
         console.log(
           `Auction result for product ${prodid} recorded successfully`
         );

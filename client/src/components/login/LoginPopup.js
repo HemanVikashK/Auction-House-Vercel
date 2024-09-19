@@ -23,14 +23,11 @@ function LoginSignupContainer({ show, onHide }) {
         return;
       }
       const body = { email, password };
-      const response = await fetch(
-        "https://auction-house-vercel.onrender.com/user/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        }
-      );
+      const response = await fetch("http://localhost:5000/user/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
       const data = await response.json();
       if (data.status === true) {
         login(data.token);
@@ -52,14 +49,11 @@ function LoginSignupContainer({ show, onHide }) {
         return;
       }
       const body = { username: name, email, password };
-      const response = await fetch(
-        "https://auction-house-vercel.onrender.com/user/signup",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        }
-      );
+      const response = await fetch("http://localhost:5000/user/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
       const data = await response.json();
       if (data.status === true) {
         toast.success("Sign up successful. Please log in.");
@@ -82,14 +76,11 @@ function LoginSignupContainer({ show, onHide }) {
         password: 123,
       };
       console.log(body);
-      const response = await fetch(
-        "https://auction-house-vercel.onrender.com/user/gprofile",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        }
-      );
+      const response = await fetch("http://localhost:5000/user/gprofile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
       const data = await response.json();
       if (data.status === true) {
         login(data.token);

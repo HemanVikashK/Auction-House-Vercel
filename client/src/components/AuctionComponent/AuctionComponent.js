@@ -4,7 +4,8 @@ import "./auction.css";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
 import { debounce } from "lodash";
-
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const AuctionComponent = () => {
   const [currentBid, setCurrentBid] = useState(0);
   const [bidHistory, setBidHistory] = useState([]);
@@ -21,15 +22,12 @@ const AuctionComponent = () => {
   const timerIntervalRef = useRef(null);
   const highestBidderRef = useRef(null);
 
-  // New state for sidebar view
   const [activeSidebarView, setActiveSidebarView] = useState("bids");
 
   useEffect(() => {
     if (!user) return;
 
-    socketRef.current = socketIOClient(
-      "https://auction-house-vercel.onrender.com"
-    );
+    socketRef.current = socketIOClient("http://localhost:5000");
     const socket = socketRef.current;
 
     fetchProdDetails(prodid);
@@ -51,6 +49,11 @@ const AuctionComponent = () => {
 
     socket.on("purchaseConfirmed", (winnerId) => {
       setSoldTo(winnerId);
+    });
+
+    socket.on("bidFailed", (message) => {
+      console.log("hello");
+      toast.error(message);
     });
 
     socket.on("usersOnline", (users) => {
@@ -91,7 +94,7 @@ const AuctionComponent = () => {
   }, [timer]);
 
   const fetchProdDetails = async (prodid) => {
-    const response = await fetch("https://auction-house-vercel.onrender.com/product/prod", {
+    const response = await fetch("http://localhost:5000/product/prod", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: prodid }),
@@ -109,11 +112,7 @@ const AuctionComponent = () => {
   );
 
   const handleBid = () => {
-    if (
-      !soldTo &&
-      bidAmount.trim() !== "" &&
-      parseInt(bidAmount) > currentBid
-    ) {
+    if (!soldTo && bidAmount.trim() !== "") {
       debouncedHandleBid(parseInt(bidAmount), prodid, user.username);
       setBidAmount("");
     }
@@ -146,6 +145,10 @@ const AuctionComponent = () => {
       { user: "System", amount: message },
     ]);
   };
+  const handleQuickBid = (multiplier) => {
+    const quickBidAmount = Math.floor(currentBid * multiplier);
+    debouncedHandleBid(quickBidAmount, prodid, user.username);
+  };
 
   const runTimer = (timerElement) => {
     const timerCircle = timerElement.querySelector("svg > circle + circle");
@@ -158,7 +161,6 @@ const AuctionComponent = () => {
         timerCircle.style.strokeDashoffset = normalizedTime;
         timerElement.querySelector("#timeLeft").textContent = prevTimer;
 
-        // Display special messages for the last 3 seconds
         const highestBidder = highestBidderRef.current;
         if (prevTimer === 3) {
           updateBidHistory(`Selling to ${highestBidder} once`);
@@ -288,6 +290,14 @@ const AuctionComponent = () => {
             Bid Starting From
             <br /> ₹{productDetails.starting_price}
           </p>
+          <button className="btn fill" style={{ fontSize: "large" }}>
+            <a
+              href="\bid-now"
+              style={{ color: "inherit", textDecoration: "none" }}
+            >
+              Back to products
+            </a>
+          </button>
         </div>
       </div>
       <div className="side-panel">
@@ -312,6 +322,20 @@ const AuctionComponent = () => {
         </div>
         Current Bid: {currentBid}
         {soldTo && <p style={{ fontSize: "20px" }}>Sold to: {soldTo}</p>}
+        <div className="quick-bid-buttons">
+          <button onClick={() => handleQuickBid(1.1)}>
+            {Math.floor(currentBid * 1.1)}
+          </button>
+          <button onClick={() => handleQuickBid(1.2)}>
+            {Math.floor(currentBid * 1.2)}
+          </button>
+          <button onClick={() => handleQuickBid(1.5)}>
+            {Math.floor(currentBid * 1.5)}
+          </button>
+          <button onClick={() => handleQuickBid(2)}>
+            {Math.floor(currentBid * 2)}
+          </button>
+        </div>
         <div className="bid-input">
           <input
             type="number"
@@ -325,6 +349,7 @@ const AuctionComponent = () => {
           </button>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };

@@ -3,6 +3,9 @@ import "./prod.css";
 import { mainCategories, subCategories } from "./categories"; // Import the shared categories
 import { useNavigate } from "react-router-dom";
 import ProductDetailsModal from "./ProductDetailsModel";
+import { Carousel } from "react-responsive-carousel";
+import "react-responsive-carousel/lib/styles/carousel.min.css";
+import { useAuth } from "../../AuthContext";
 const CountdownTimer = ({ time, onTimerEnd }) => {
   const [remainingTime, setRemainingTime] = useState(time);
 
@@ -36,45 +39,44 @@ function Prod() {
   const [subCategory, setSubCategory] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [productsPerPage] = useState(8);
+  const [productsPerPage] = useState(15);
+  const [priceRange, setPriceRange] = useState([0, 10000]);
+  const [timeLeft, setTimeLeft] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const { signedin } = useAuth();
   useEffect(() => {
     fetchProducts();
-  }, [mainCategory, subCategory, searchTerm, currentPage]);
+  }, [mainCategory, subCategory, searchTerm, currentPage, signedin]);
 
   const fetchProducts = async () => {
     try {
       const response = await fetch(
-        "https://auction-house-vercel.onrender.com/product/allproductsunsold"
+        "http://localhost:5000/product/allproductsunsold"
       );
       const data = await response.json();
       if (data.status) {
         const currentTime = new Date();
 
-        // Split products into two groups: active and ended timers
         const [activeTimers, endedTimers] = data.data.reduce(
           (acc, product) => {
             const remainingTime =
               new Date(product.auction_start_time) - currentTime;
             if (remainingTime <= 0 || product.timerEnded) {
-              acc[1].push(product); // ended timers
+              acc[1].push(product);
             } else {
-              acc[0].push({ ...product, remainingTime }); // active timers with remaining time
+              acc[0].push({ ...product, remainingTime });
             }
             return acc;
           },
           [[], []]
         );
 
-        // Sort active timers by remaining time
         const sortedActiveTimers = activeTimers.sort(
           (a, b) => a.remainingTime - b.remainingTime
         );
 
-        // Combine active timers and ended timers
         const sortedProducts = [...sortedActiveTimers, ...endedTimers];
 
-        // Apply category and search filters
         const filteredProducts = sortedProducts.filter((product) => {
           return (
             (!mainCategory || product.main_category === mainCategory) &&
@@ -84,7 +86,6 @@ function Prod() {
           );
         });
 
-        // Pagination
         const indexOfLastProduct = currentPage * productsPerPage;
         const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
         const currentProducts = filteredProducts.slice(
@@ -107,7 +108,6 @@ function Prod() {
     navigate(`/product/${productId}`);
   };
 
-  // Logic for displaying page numbers
   const pageNumbers = [];
   for (let i = 1; i <= Math.ceil(products.length / productsPerPage); i++) {
     pageNumbers.push(i);
@@ -162,129 +162,241 @@ function Prod() {
   const closeModal = () => {
     setSelectedProduct(null);
   };
+  const handlePriceRangeChange = (e) => {
+    const [min, max] = e.target.value.split("-").map(Number);
+    setPriceRange([min, max]);
+  };
 
+  const handleTimeLeftChange = (e) => {
+    setTimeLeft(e.target.value);
+  };
+  const navigateTrial = () => {
+    navigate("/product/36");
+  };
   return (
-    <div>
-      <h3 style={{ flex: "none", width: "100%", textAlign: "center" }}>
-        Refresh 10 minutes before auction starts to join
-      </h3>
-      <div className="filters container">
-        <div className="tag-container">
-          {mainCategories.map((category) => (
-            <div
-              key={category}
-              className={`tag ${mainCategory === category ? "selected" : ""}`}
-              onClick={() => handleMainCategoryClick(category)}
-            >
-              {category}
-            </div>
-          ))}
-        </div>
-        <div className="tag-container">
-          {subCategories.map((category) => (
-            <div
-              key={category}
-              className={`tag ${subCategory === category ? "selected" : ""}`}
-              onClick={() => handleSubCategoryClick(category)}
-            >
-              {category}
-            </div>
-          ))}
-        </div>
-        <input
-          type="text"
-          placeholder="Search..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ margin: "10px", padding: "5px" }}
-        />
-      </div>
-      <div className="container10">
-        {[...timerEndedProducts, ...products].map((product) => (
-          <div key={product.id} className="wrapper">
-            <div className="banner-image">
+    <>
+      {signedin ? (
+        <>
+          <Carousel showThumbs={false} autoPlay infiniteLoop>
+            <div>
               <img
-                src={product.image_url}
-                alt={product.name}
-                className="product-image"
+                src="https://vikauction-bucket.s3.ap-south-1.amazonaws.com/2875365_8333.jpeg"
+                alt="Slide 1"
               />
             </div>
-            <h1>{product.name}</h1>
-            <p style={{ fontSize: "medium" }}>
-              Starting From
-              <br />₹{product.starting_price}
-            </p>
-            <div className="tag-container">
-              <div className={`tag`}>{product.main_category}</div>
-              <div className={`tag`}>{product.sub_category}</div>
+            <div>
+              <img
+                src="https://vikauction-bucket.s3.ap-south-1.amazonaws.com/2875365_8334.jpeg"
+                alt="Slide 2"
+              />
             </div>
-            <div className="button-wrapper">
-              {product.auction_start_time && !product.timerEnded ? (
-                <>
-                  <button
-                    className="btn outline"
-                    onClick={() => handleViewDetails(product)}
+          </Carousel>
+          <div className="containermain">
+            <div className="filters container">
+              <h6>Main Filter</h6>
+              <div className="tag-container">
+                {mainCategories.map((category) => (
+                  <div
+                    key={category}
+                    className={`tag ${
+                      mainCategory === category ? "selected" : ""
+                    }`}
+                    onClick={() => handleMainCategoryClick(category)}
                   >
-                    VIEW DETAILS
-                  </button>
-                  {new Date(product.auction_start_time) - new Date() > 0 && (
-                    <p style={{ fontSize: "medium" }}>
-                      Auction will start in :<br />
-                      <CountdownTimer
-                        time={new Date(product.auction_start_time) - new Date()}
-                        onTimerEnd={() => handleTimerEnd(product.id)}
-                      />
-                    </p>
-                  )}
-                  {new Date(product.auction_start_time) - new Date() > 0 &&
-                    new Date(product.auction_start_time) - new Date() <
-                      10 * 60 * 1000 && (
-                      <button
-                        className="btn fill"
-                        onClick={() => handleJoinAuction(product.id)}
-                      >
-                        JOIN LIVE AUCTION
-                      </button>
-                    )}
-
-                  {new Date(product.auction_start_time) - new Date() < 0 && (
-                    <p style={{ fontSize: "medium" }}>
-                      <button className="btn closed" disabled>
-                        CLOSED
-                      </button>
-                    </p>
-                  )}
-                </>
-              ) : null}
+                    {category}
+                  </div>
+                ))}
+              </div>
+              <hr />
+              <h6>Sub Filter</h6>
+              <div className="tag-container">
+                {subCategories.map((category) => (
+                  <div
+                    key={category}
+                    className={`tag ${
+                      subCategory === category ? "selected" : ""
+                    }`}
+                    onClick={() => handleSubCategoryClick(category)}
+                  >
+                    {category}
+                  </div>
+                ))}
+              </div>
+              <hr />
+              <h6>Price Range</h6>
+              <select onChange={handlePriceRangeChange}>
+                <option value="0-1000">₹0 - ₹1000</option>
+                <option value="1000-5000">₹1000 - ₹5000</option>
+                <option value="5000-10000">₹5000 - ₹10000</option>
+                <option value="10000-20000">₹10000 - ₹20000</option>
+              </select>
+              <hr />
+              <h6>Time Left</h6>
+              <select onChange={handleTimeLeftChange}>
+                <option value="">All</option>
+                <option value="10">10 minutes</option>
+                <option value="30">30 minutes</option>
+                <option value="60">1 hour</option>
+                <option value="120">2 hours</option>
+              </select>
+              <hr />
+              <h6>Search</h6>
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ padding: "5px" }}
+              />
             </div>
+            <div className="container-product">
+              <div className="container10">
+                <div className="wrapper">
+                  <div className="banner-image">
+                    <img
+                      src="https://vikauction-bucket.s3.ap-south-1.amazonaws.com/8319d17b9a757ee3c4c2ce4044c53888f0ce3c228826309436501d48d10e6258"
+                      alt="Image"
+                      className="product-image"
+                    />
+                  </div>
+                  <h1>Phone</h1>
+                  <p style={{ fontSize: "x-small" }}>
+                    Starting From
+                    <br />
+                    ₹10000
+                  </p>
+                  <div className="tag-container">
+                    <div className={`tag`}>Pre-Owned</div>
+                    <div className={`tag`}>Electronics</div>
+                  </div>
+
+                  <div className="button-wrapper">
+                    <button
+                      className="btn fill"
+                      onClick={() => navigateTrial()}
+                    >
+                      JOIN LIVE AUCTION
+                    </button>
+                  </div>
+                </div>
+                {[...timerEndedProducts, ...products].map((product) => (
+                  <div key={product.id} className="wrapper">
+                    <div className="banner-image">
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        className="product-image"
+                      />
+                    </div>
+                    <h1>{product.name}</h1>
+                    <p style={{ fontSize: "x-small" }}>
+                      Starting From
+                      <br />₹{product.starting_price}
+                    </p>
+                    <div className="tag-container">
+                      <div className={`tag`}>{product.main_category}</div>
+                      <div className={`tag`}>{product.sub_category}</div>
+                    </div>
+                    <div className="button-wrapper">
+                      {product.auction_start_time && !product.timerEnded ? (
+                        <>
+                          <button
+                            className="btn outline"
+                            onClick={() => handleViewDetails(product)}
+                          >
+                            VIEW DETAILS
+                          </button>
+                          {new Date(product.auction_start_time) - new Date() >
+                            0 && (
+                            <p style={{ fontSize: "x-small" }}>
+                              Auction will start in :<br />
+                              <CountdownTimer
+                                time={
+                                  new Date(product.auction_start_time) -
+                                  new Date()
+                                }
+                                onTimerEnd={() => handleTimerEnd(product.id)}
+                              />
+                            </p>
+                          )}
+                          {new Date(product.auction_start_time) - new Date() >
+                            0 &&
+                            new Date(product.auction_start_time) - new Date() <
+                              10 * 60 * 1000 && (
+                              <button
+                                className="btn fill"
+                                onClick={() => handleJoinAuction(product.id)}
+                              >
+                                JOIN LIVE AUCTION
+                              </button>
+                            )}
+
+                          {new Date(product.auction_start_time) - new Date() <
+                            0 && (
+                            <p style={{ fontSize: "x-small" }}>
+                              <button className="btn closed" disabled>
+                                CLOSED
+                              </button>
+                            </p>
+                          )}
+                        </>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+                <ul
+                  className="pagination"
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <li onClick={handlePrevPage}>
+                    <button
+                      className="btn outline"
+                      style={{ marginRight: "10px" }}
+                    >
+                      &laquo; Prev
+                    </button>
+                  </li>
+                  {currentPage}
+                  <li onClick={handleNextPage}>
+                    <button
+                      className="btn outline"
+                      style={{ marginLeft: "10px" }}
+                    >
+                      Next &raquo;
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {selectedProduct && (
+              <ProductDetailsModal
+                product={selectedProduct}
+                onClose={closeModal}
+              />
+            )}
+          </div>{" "}
+        </>
+      ) : (
+        <>
+          <div className="elsecontainer">
+            <img
+              className="elseimg"
+              src="https://vikauction-bucket.s3.ap-south-1.amazonaws.com/hand-drawn-no-data-illustration_23-2150544946.avif"
+            ></img>
+            <h1 className="elseh1">
+              Oops!!!
+              <br /> YOU NEED TO SIGN IN FIRST
+            </h1>
           </div>
-        ))}
-      </div>
-      <ul
-        className="pagination"
-        style={{
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <li onClick={handlePrevPage}>
-          <button className="btn outline" style={{ marginRight: "10px" }}>
-            &laquo; Prev
-          </button>
-        </li>
-        {currentPage}
-        <li onClick={handleNextPage}>
-          <button className="btn outline" style={{ marginLeft: "10px" }}>
-            Next &raquo;
-          </button>
-        </li>
-      </ul>
-      {selectedProduct && (
-        <ProductDetailsModal product={selectedProduct} onClose={closeModal} />
+        </>
       )}
-    </div>
+    </>
   );
 }
 

@@ -9,6 +9,8 @@ const {
   getAllProdUnSold,
   getAllProdSold,
   getAuctionResult,
+  getAllUserAuctionResults,
+  getAllUserProducts,
 } = require("../controller/productController");
 
 const multer = require("multer");
@@ -22,6 +24,8 @@ router.delete("/delete/:id", delProd);
 router.get("/allproductsunsold", getAllProdUnSold);
 router.get("/allproductssold", getAllProdSold);
 router.get("/auctionresult/:id", getAuctionResult);
+router.get("/userauctionresults/:id", getAllUserAuctionResults);
+router.get("/userproducts/:id", getAllUserProducts);
 
 router.post("/prod", getProd);
 

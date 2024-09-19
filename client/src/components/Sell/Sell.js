@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../../AuthContext";
-import "./sell.css"; // Import the CSS file
+import "./sell.css";
 
 function Sell() {
   const [file, setFile] = useState(null);
@@ -30,13 +30,10 @@ function Sell() {
     formData.append("sub_category", subCategory);
 
     try {
-      const response = await fetch(
-        "https://auction-house-vercel.onrender.com/product/create",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const response = await fetch("http://localhost:5000/product/create", {
+        method: "POST",
+        body: formData,
+      });
 
       if (response.ok) {
         setFile(null);
@@ -75,10 +72,17 @@ function Sell() {
   };
 
   return (
-    <div className="container10">
+    <div style={{ margin: "100px" }}>
       {!user ? (
-        <div style={{ textAlign: "center", color: "black", fontSize: "50px" }}>
-          Please login first.
+        <div className="elsecontainer">
+          <img
+            className="elseimg"
+            src="https://vikauction-bucket.s3.ap-south-1.amazonaws.com/hand-drawn-no-data-illustration_23-2150544946.avif"
+          ></img>
+          <h1 className="elseh1">
+            Oops!!!
+            <br /> YOU NEED TO SIGN IN FIRST
+          </h1>
         </div>
       ) : (
         <div style={{ width: "100%", display: "flex" }}>
@@ -211,7 +215,6 @@ function Sell() {
                 >
                   Beauty & Toys
                 </div>
-                {/* Add more subcategory tags here */}
               </div>
 
               <button
