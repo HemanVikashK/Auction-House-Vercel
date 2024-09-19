@@ -171,7 +171,7 @@ function Prod() {
     setTimeLeft(e.target.value);
   };
   const navigateTrial = () => {
-    navigate("/product/36");
+    navigate("/product/1");
   };
   return (
     <>
